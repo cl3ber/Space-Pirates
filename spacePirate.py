@@ -1,5 +1,6 @@
 import math
 import random
+from random import randint
 from typing import Any
 import pygame
 from pygame.sprite import Group, AbstractGroup
@@ -79,15 +80,17 @@ class Piratas(pygame.sprite.Sprite):
         self.movimento = 0
         self.direcao = 1
         self.ultimo_tiro = pygame.time.get_ticks()
+        self.targetX = randint(0, LARGURA_TELA-120)
+        self.targetY = randint(0, ALTURA_TELA-120)
 
     def update(self):
-        self.rect.x += self.direcao
-        self.movimento += 1
-        recarga = 1000
-        if abs(self.movimento) > 50:
-            self.direcao *= -1
-            self.movimento *= self.direcao
+        self.targetX = randint(0, LARGURA_TELA-120) if self.targetX == self.rect.x else self.targetX
+        self.targetY = randint(0, ALTURA_TELA-120) if self.targetY == self.rect.y else self.targetY
+
+        self.rect.x += 1 if self.rect.x <= self.targetX else -1
+        self.rect.y += 1 if self.rect.y <= self.targetY else -1
         
+        recarga = 5000
         if pygame.time.get_ticks() - self.ultimo_tiro > recarga:
             tiro = Tiros(self.rect.centerx, self.rect.bottom, False)
             tiros_group.add(tiro)
@@ -109,15 +112,15 @@ class Navinha(pygame.sprite.Sprite):
 
         #tempo em ms para "recarga dos canhões"
         recarga = 500
-
+        
         tecla = pygame.key.get_pressed()
         if tecla[pygame.K_LEFT] and self.rect.left > 0:
             self.rect.x -= velocidade
-        if tecla[pygame.K_RIGHT] and self.rect.right < LARGURA_TELA:
+        if tecla[pygame.K_RIGHT] and self.rect.right < LARGURA_TELA-30:
             self.rect.x += velocidade
-        if tecla[pygame.K_DOWN] and self.rect.bottom > 0:
+        if tecla[pygame.K_DOWN] and self.rect.bottom <= ALTURA_TELA:
             self.rect.y += velocidade
-        if tecla[pygame.K_UP] and self.rect.top < altura_fundo:
+        if tecla[pygame.K_UP] and self.rect.top >=0:
             self.rect.y -= velocidade
 
 
@@ -233,7 +236,7 @@ class GameState():
 
 
 clock = pygame.time.Clock()
-LARGURA_TELA = 600
+LARGURA_TELA = 1280
 ALTURA_TELA = 800
 game_state = GameState()
 
@@ -254,7 +257,7 @@ piratas_group = pygame.sprite.Group()
 explosao_group = pygame.sprite.Group()
 
 #navinha
-navinha = Navinha(int(LARGURA_TELA/2), ALTURA_TELA-100, 100)
+navinha = Navinha(60, ALTURA_TELA/2, 100)
 
 naves_group.add(navinha)
 
