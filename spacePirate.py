@@ -8,26 +8,26 @@ from pygame.sprite import Group, AbstractGroup
 pygame.init()
 
 class Tiros(pygame.sprite.Sprite):
-    def __init__(self, x, y, sobe):
+    def __init__(self, x, y, jogador):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(pygame.image.load("./assets/tiro.png"), (20,20))
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
-        self.sobe = sobe
+        self.jogador = jogador
 
     def update(self):
-        self.rect.y = self.rect.y - 5 if self.sobe else self.rect.y + 5
+        self.rect.x = self.rect.x + 5 if self.jogador else self.rect.x - 5
         #Se o tiro sair da tela, remover ele do grupo de tiros e do jogo
-        if (self.sobe and self.rect.bottom < 0) or (not self.sobe and self.rect.top > ALTURA_TELA):
+        if (self.jogador and self.rect.x < 0) or (not self.jogador and self.rect.y > ALTURA_TELA):
             self.kill()
 
-        if self.sobe and pygame.sprite.spritecollide(self, piratas_group, True):
+        if self.jogador and pygame.sprite.spritecollide(self, piratas_group, True):
             navinha.combustivel_restante += 10
             self.kill()
             explosao = Explosao(self.rect.centerx, self.rect.centery)
             explosao_group.add(explosao)
 
-        if not self.sobe and pygame.sprite.spritecollide(self, naves_group, False, pygame.sprite.collide_mask):
+        if not self.jogador and pygame.sprite.spritecollide(self, naves_group, False, pygame.sprite.collide_mask):
             navinha.combustivel_restante -= 10
             self.kill()
 
@@ -87,8 +87,8 @@ class Piratas(pygame.sprite.Sprite):
         self.targetX = randint(0, LARGURA_TELA-120) if self.targetX == self.rect.x else self.targetX
         self.targetY = randint(0, ALTURA_TELA-120) if self.targetY == self.rect.y else self.targetY
 
-        self.rect.x += 1 if self.rect.x <= self.targetX else -1
-        self.rect.y += 1 if self.rect.y <= self.targetY else -1
+        self.rect.x += 2 if self.rect.x <= self.targetX else -1
+        self.rect.y += 2 if self.rect.y <= self.targetY else -1
         
         recarga = 5000
         if pygame.time.get_ticks() - self.ultimo_tiro > recarga:
@@ -99,7 +99,7 @@ class Piratas(pygame.sprite.Sprite):
 class Navinha(pygame.sprite.Sprite):
     def __init__(self, x, y, combustivel):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(pygame.image.load("./assets/boat.png"), (120,120))
+        self.image = pygame.transform.scale(pygame.image.load("./assets/barco_principal.png"), (120,120))
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.combustivel_base = combustivel
@@ -140,7 +140,7 @@ class Navinha(pygame.sprite.Sprite):
 def paralax(scroll):
     #desenhando o fundo
     for i in range(0, tiles):
-        tela.blit(fundo, (0, i * altura_fundo + scroll))
+        tela.blit(fundo, (i * largura_fundo + scroll, 0))
 
 def criar_piratas(altura, largura):
         piratas_group.add(Piratas(altura, 100 + largura * 70))
@@ -242,8 +242,9 @@ game_state = GameState()
 
 #criando a janela do jogo
 tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
-fundo = pygame.image.load("./assets/space.jpg").convert()
+fundo = pygame.image.load("./assets/background2.png").convert()
 altura_fundo = fundo.get_height()
+largura_fundo = fundo.get_width()
 limite_fundo = fundo.get_rect()
 
 #Variáveis do jogo
@@ -268,12 +269,11 @@ respawn = pygame.time.get_ticks()
 
 while rodando:
     paralax(scroll_tela)
-
-    scroll_tela = 0 if abs(scroll_tela) > altura_fundo else scroll_tela-1
+    scroll_tela = 0 if abs(scroll_tela) > largura_fundo else scroll_tela-1
 
     #Mudei essa parte do codigo pros piratas so spawnarem quando o jogo estiver rodando
     if pygame.time.get_ticks() - respawn > delay_piratas and len(piratas_group.sprites()) < 5 and game_state.state == 'jogo':
-            criar_piratas(random.randint(60, LARGURA_TELA-60), random.randint(1, 6))
+            criar_piratas(LARGURA_TELA, random.randint(1,6))
             respawn = pygame.time.get_ticks()
 
     #Esse for captura todos os eventos que o pygame está executando, inclusive inputs
