@@ -4,6 +4,7 @@ from random import randint
 from typing import Any
 import pygame
 from pygame.sprite import Group, AbstractGroup
+import os
 
 pygame.init()
 
@@ -74,7 +75,8 @@ class SpriteSheet():
 class Piratas(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(pygame.image.load("./assets/pirata.png"), (120,120))
+        self.image = pygame.transform.scale(pygame.image.load("./assets/barco_boss_mercenario.png"), (120,120)) if randint(0, 2) == randint(0,2) else pygame.transform.scale(pygame.image.load("./assets/boss_barco_marinha.png"), (120,120))
+            
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.movimento = 0
@@ -99,28 +101,40 @@ class Piratas(pygame.sprite.Sprite):
 class Navinha(pygame.sprite.Sprite):
     def __init__(self, x, y, combustivel):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(pygame.image.load("./assets/barco_principal.png"), (120,120))
+        self.image = pygame.transform.scale(pygame.image.load("./assets/barco_principal.gif"), (120,120))
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.combustivel_base = combustivel
         self.combustivel_restante = 0
         self.combustivel_maximo = 100
         self.ultimo_tiro = pygame.time.get_ticks()
+        self.animacao = []
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+
+        frames = len(os.listdir(f'./assets/player'))
+        templist = []
+        for frame in range(frames):
+            self.animacao.append(pygame.transform.scale(pygame.image.load(f"./assets/player/barco_principal_{frame+1}.png"), (120,120)))
+
+        self.image = self.animacao[self.frame]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
 
     def update(self):
         velocidade = 3
-
+        frameskip = 160
         #tempo em ms para "recarga dos canhões"
         recarga = 500
         
         tecla = pygame.key.get_pressed()
-        if tecla[pygame.K_LEFT] and self.rect.left > 0:
+        if (tecla[pygame.K_LEFT] or tecla[pygame.K_a]) and self.rect.left > 0:
             self.rect.x -= velocidade
-        if tecla[pygame.K_RIGHT] and self.rect.right < LARGURA_TELA-30:
+        if (tecla[pygame.K_RIGHT] or tecla[pygame.K_d])and self.rect.right < LARGURA_TELA-30:
             self.rect.x += velocidade
-        if tecla[pygame.K_DOWN] and self.rect.bottom <= ALTURA_TELA:
+        if (tecla[pygame.K_DOWN] or tecla[pygame.K_s]) and self.rect.bottom <= ALTURA_TELA:
             self.rect.y += velocidade
-        if tecla[pygame.K_UP] and self.rect.top >=0:
+        if (tecla[pygame.K_UP] or tecla[pygame.K_w])and self.rect.top >=0:
             self.rect.y -= velocidade
 
 
@@ -136,6 +150,13 @@ class Navinha(pygame.sprite.Sprite):
         #pra nao deixar o combustivel ultrapassar o maximo
         if self.combustivel_restante > self.combustivel_maximo:
             self.combustivel_restante = self.combustivel_maximo  
+
+        if pygame.time.get_ticks() - self.last_update > frameskip:
+            self.last_update = pygame.time.get_ticks()
+            self.frame += 1 if self.frame < len(self.animacao)-1 else self.frame*-1
+
+        self.image = self.animacao[self.frame]
+        
 
 def paralax(scroll):
     #desenhando o fundo
