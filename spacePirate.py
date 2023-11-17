@@ -101,9 +101,6 @@ class Piratas(pygame.sprite.Sprite):
 class Navinha(pygame.sprite.Sprite):
     def __init__(self, x, y, combustivel):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(pygame.image.load("./assets/barco_principal.gif"), (120,120))
-        self.rect = self.image.get_rect()
-        self.rect.center = [x, y]
         self.combustivel_base = combustivel
         self.combustivel_restante = 0
         self.combustivel_maximo = 100
@@ -156,27 +153,38 @@ class Navinha(pygame.sprite.Sprite):
             self.frame += 1 if self.frame < len(self.animacao)-1 else self.frame*-1
 
         self.image = self.animacao[self.frame]
+
+class ScoreBoard(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        sprites = SpriteSheet(pygame.image.load("./assets/screen/TreasureChest.png").convert_alpha())
+
+        self.images = []
+        for num in range(0, 3):
+            img = sprites.carregarimagem(num, 64, 64, 2, (0, 0, 0))
+            self.images.append(img)
+
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.counter = 0
+    
+    def update(self):
+        velocidade_explosao = 6
+        self.counter += 1
+        if self.index < len(self.images)-1:
+            self.counter = 0
+            self.index += 1
+            self.image = self.images[self.index]
         
-
-def paralax(scroll):
-    #desenhando o fundo
-    for i in range(0, tiles):
-        tela.blit(fundo, (i * largura_fundo + scroll, 0))
-
-def criar_piratas(altura, largura):
-        piratas_group.add(Piratas(altura, 100 + largura * 70))
-
-def reset():
-    navinha.combustivel_restante = 0
-    piratas_group.empty()
-    navinha.rect.center = [int(LARGURA_TELA/2), ALTURA_TELA-100]
-    tiros_group.empty()
-    explosao_group.empty()
+        if self.index >= len(self.images) -1 and self.counter >= velocidade_explosao:
+            self.kill()
 
 class GameState():
     def __init__(self):
         self.state = 'main_menu'
-        self.fase = 2
+        self.fase = 2   
         self.selected_index = 0
 
     def main_menu(self):
@@ -244,6 +252,15 @@ class GameState():
         self.state = 'main_menu'
         pygame.display.update()
 
+    def change_level(level):
+        tela.fill((255,255,255))
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"Level {level}", True, (0,0,0))
+        tela.blit(text, (LARGURA_TELA // 2 - text.get_width() // 2, ALTURA_TELA // 2 - text.get_height() // 2))
+        pygame.display.flip()
+        pygame.time.delay(5000)  # Aguarda 2 segundos (ajuste conforme necessário)
+        pygame.display.flip()
+
     def state_manager(self):
         if self.state == 'main_menu':
             self.main_menu()
@@ -253,8 +270,24 @@ class GameState():
             self.game_over()
         if self.state == 'win':
             self.win()
-    
+        if self.state == 'change_level':
+            self.change_level()
 
+
+def paralax(scroll):
+    #desenhando o fundo
+    for i in range(0, tiles):
+        tela.blit(fundo, (i * largura_fundo + scroll, 0))
+
+def criar_piratas(altura, largura):
+        piratas_group.add(Piratas(altura, 100 + largura * 70))
+
+def reset():
+    navinha.combustivel_restante = 0
+    piratas_group.empty()
+    navinha.rect.center = [int(LARGURA_TELA/2), ALTURA_TELA-100]
+    tiros_group.empty()
+    explosao_group.empty()
 
 clock = pygame.time.Clock()
 LARGURA_TELA = 1280
@@ -273,6 +306,7 @@ tiles = math.ceil(ALTURA_TELA / altura_fundo) + 1
 scroll_tela = 0
 
 #Criando um grupo de sprites pra facilitar a inclusão deles na tela
+scoreBoard_group = pygame.sprite.Group()
 naves_group = pygame.sprite.Group()
 tiros_group = pygame.sprite.Group()
 piratas_group = pygame.sprite.Group()
@@ -282,6 +316,8 @@ explosao_group = pygame.sprite.Group()
 navinha = Navinha(60, ALTURA_TELA/2, 100)
 
 naves_group.add(navinha)
+
+scoreBoard_group.add(ScoreBoard(ALTURA_TELA - 10, LARGURA_TELA - 10))
 
 rodando = True
 
