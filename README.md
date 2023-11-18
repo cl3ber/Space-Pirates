@@ -9,3 +9,6 @@ Necessário para rodar:
   para rodar o jogo, basta entrar na raiz dos arquivos, abrir um prompt de comando e digitar o seguinte comando:
 
   python .\spacePirate.py
+
+
+https://wysts.itch.io/wysts-treasure-chest-64x64
