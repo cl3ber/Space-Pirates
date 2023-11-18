@@ -1,5 +1,5 @@
 import pygame
-import Explosao
+from data.Explosao import Explosao
 
 class Tiros(pygame.sprite.Sprite):
     def __init__(self, x, y, jogador, limitex, limitey):
