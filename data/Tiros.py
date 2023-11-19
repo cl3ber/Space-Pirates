@@ -15,8 +15,8 @@ class Tiros(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + 5 if self.jogador else self.rect.x - 5
 
         #Se o tiro sair da tela, remover ele do grupo de tiros e do jogo
-        # if (0 < self.rect.x > self.limitex) or (0 < self.rect.y > self.limitey):
-        #     self.kill()
+        if (self.rect.x < 0 or self.rect.x > self.limitex) or (self.rect.y < 0 or self.rect.y > self.limitey):
+            self.kill()
 
         # if self.jogador and pygame.sprite.spritecollide(self, self.piratas_group, True):
         #     self.nave.combustivel_restante += 10
