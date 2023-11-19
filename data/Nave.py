@@ -7,7 +7,8 @@ class Navinha(pygame.sprite.Sprite):
     def __init__(self, x, y, combustivel, tiros_group, limitex, limitey):
         pygame.sprite.Sprite.__init__(self)
         self.combustivel_maximo = self.combustivel_base = combustivel
-        self.frame = self.combustivel_restante = 0
+        self.frame = 0
+        self.combustivel_restante = 0
         self.animacao = []
         self.ultimo_tiro = pygame.time.get_ticks()
         self.last_update = pygame.time.get_ticks()

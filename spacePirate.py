@@ -9,6 +9,7 @@ from data.Nave import Navinha
 from data.Tiros import Tiros
 from data.Piratas import Piratas
 from data.Explosao import Explosao
+from data.Scoreboard import ScoreBoard
 
 pygame.init()
 
@@ -46,28 +47,36 @@ class GameState():
 
         colisoes_piratas = pygame.sprite.groupcollide(tiros_piratas_group, naves_group, True, False)
         for nave, tiro in colisoes_piratas.items():
-            navinha.combustivel_restante+=10
+            navinha.combustivel_restante-=10
 
+        pygame.draw.rect(tela, (255,0,0), (0, (ALTURA_TELA - 10), LARGURA_TELA, 15))
+        if navinha.combustivel_restante > 0:
+            pygame.draw.rect(tela, (0,255,0), (0, (ALTURA_TELA  - 10), int(LARGURA_TELA * (navinha.combustivel_restante / navinha.combustivel_base)), 15))
+
+        scoreBoard_group.add(ScoreBoard(ALTURA_TELA - 100, LARGURA_TELA - 100))
 
         naves_group.update()
         tiros_group.update()
         explosao_group.update()
         piratas_group.update()
         tiros_piratas_group.update()
+        scoreBoard_group.update()
 
         naves_group.draw(tela)
         tiros_group.draw(tela)
         piratas_group.draw(tela)
         explosao_group.draw(tela)
         tiros_piratas_group.draw(tela)
+        scoreBoard_group.draw(tela)
 
         pygame.display.update()
 
     def game_over(self):
+
         #Criando uma variavel que ira verificar se o usuario continuara jogando ou voltara pro menu
-        if pygame.key.get_pressed()[pygame.K_LEFT]:
+        if pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_a]:
             self.selected_index = 0
-        elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+        elif pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_d]:
             self.selected_index = 1
         
         #Desenhando imagem de game over + retry
@@ -78,13 +87,13 @@ class GameState():
         pick = pygame.image.load("./assets/pick.png").convert()
         tela.blit(game_over, (LARGURA_TELA/2-199, ALTURA_TELA/2-33))
         tela.blit(retry, (LARGURA_TELA/2-66, 600))
-        tela.blit(yes, (150, 650))
-        tela.blit(no, (350, 650))
+        tela.blit(yes, (LARGURA_TELA/2-120, 650))
+        tela.blit(no, (LARGURA_TELA/2+60, 650))
 
         if self.selected_index == 0:
-            tela.blit(pick, (120, 650))
+            tela.blit(pick, (LARGURA_TELA/2-150, 650))
         elif self.selected_index == 1:
-            tela.blit(pick, (320, 650))
+            tela.blit(pick, (LARGURA_TELA/2+30, 650))
 
         if pygame.key.get_pressed()[pygame.K_RETURN]:
             if self.selected_index == 0:
@@ -101,14 +110,18 @@ class GameState():
         self.state = 'main_menu'
         pygame.display.update()
 
-    def change_level(level):
+    def change_level(self, level):
+        paralax(scroll_tela*5)
+        pygame.time.delay(5000)  # Aguarda 2 segundos (ajuste conforme necessário)
         tela.fill((255,255,255))
         font = pygame.font.Font(None, 36)
         text = font.render(f"Level {level}", True, (0,0,0))
         tela.blit(text, (LARGURA_TELA // 2 - text.get_width() // 2, ALTURA_TELA // 2 - text.get_height() // 2))
         pygame.display.flip()
-        pygame.time.delay(5000)  # Aguarda 2 segundos (ajuste conforme necessário)
+        
         pygame.display.flip()
+        reset()
+        self.state = 'jogo'
 
     def state_manager(self):
         if self.state == 'main_menu':
@@ -118,9 +131,9 @@ class GameState():
         if self.state == 'game_over':
             self.game_over()
         if self.state == 'win':
-            self.win()
+            self.change_level(0)
         if self.state == 'change_level':
-            self.change_level()
+            self.change_level(0)
 
 
 def paralax(scroll):
@@ -134,9 +147,11 @@ def criar_piratas(altura, largura):
 def reset():
     navinha.combustivel_restante = 0
     piratas_group.empty()
-    navinha.rect.center = [int(LARGURA_TELA/2), ALTURA_TELA-100]
     tiros_group.empty()
     explosao_group.empty()
+    tiros_piratas_group.empty()
+    scoreBoard_group.empty()
+    navinha.rect.center = [60, ALTURA_TELA/2]
 
 clock = pygame.time.Clock()
 LARGURA_TELA = 1280
@@ -166,8 +181,6 @@ explosao_group = pygame.sprite.Group()
 navinha = Navinha(60, ALTURA_TELA/2, 100, tiros_group, ALTURA_TELA, LARGURA_TELA)
 
 naves_group.add(navinha)
-
-#scoreBoard_group.add(ScoreBoard(ALTURA_TELA - 10, LARGURA_TELA - 10))
 
 rodando = True
 

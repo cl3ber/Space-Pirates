@@ -1,5 +1,5 @@
 import pygame
-from Sprites import SpriteSheet
+from data.Sprites import SpriteSheet
 
 class ScoreBoard(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -25,5 +25,5 @@ class ScoreBoard(pygame.sprite.Sprite):
             self.index += 1
             self.image = self.images[self.index]
         
-        if self.index >= len(self.images) -1 and self.counter >= velocidade_explosao:
-            self.kill()
+        # if self.index >= len(self.images) -1 and self.counter >= velocidade_explosao:
+        #     self.kill()
