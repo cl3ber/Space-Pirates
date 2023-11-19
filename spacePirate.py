@@ -42,7 +42,7 @@ class GameState():
 
         colisoes_jogador = pygame.sprite.groupcollide(tiros_group, piratas_group, True, True)
         for pirata, tiro in colisoes_jogador.items():
-            navinha.combustivel_restante+=10
+            navinha.combustivel_restante+=100
             explosao_group.add(Explosao(pirata.rect.centerx, pirata.rect.centery))
 
         colisoes_piratas = pygame.sprite.groupcollide(tiros_piratas_group, naves_group, True, False)
@@ -106,22 +106,38 @@ class GameState():
         pygame.display.update()
 
     def win(self):
-        reset()
-        self.state = 'main_menu'
         pygame.display.update()
 
     def change_level(self, level):
-        paralax(scroll_tela*5)
-        pygame.time.delay(5000)  # Aguarda 2 segundos (ajuste conforme necessário)
-        tela.fill((255,255,255))
+        tela.fill((0,0,0))
         font = pygame.font.Font(None, 36)
-        text = font.render(f"Level {level}", True, (0,0,0))
+        text = font.render(f"Level {level}", True, (255,255,255))
         tela.blit(text, (LARGURA_TELA // 2 - text.get_width() // 2, ALTURA_TELA // 2 - text.get_height() // 2))
         pygame.display.flip()
-        
+        pygame.time.delay(1500)  # Aguarda 2 segundos (ajuste conforme necessário)
         pygame.display.flip()
-        reset()
         self.state = 'jogo'
+
+    def animacao(self):
+        piratas_group.empty()
+        tiros_group.empty()
+        explosao_group.empty()
+        tiros_piratas_group.empty()
+        naves_group.update()
+        tiros_group.update()
+        explosao_group.update()
+        piratas_group.update()
+        tiros_piratas_group.update()
+        scoreBoard_group.update()
+
+        naves_group.draw(tela)
+        tiros_group.draw(tela)
+        piratas_group.draw(tela)
+        explosao_group.draw(tela)
+        tiros_piratas_group.draw(tela)
+        scoreBoard_group.draw(tela)
+
+        pygame.display.update()
 
     def state_manager(self):
         if self.state == 'main_menu':
@@ -131,7 +147,9 @@ class GameState():
         if self.state == 'game_over':
             self.game_over()
         if self.state == 'win':
-            self.change_level(0)
+            self.win()
+        if self.state == 'animacao':
+            self.animacao()
         if self.state == 'change_level':
             self.change_level(0)
 
@@ -186,9 +204,11 @@ rodando = True
 
 delay_piratas = 2000
 respawn = pygame.time.get_ticks()
+animacao_fim = 0
 
 while rodando:
     paralax(scroll_tela)
+    
     scroll_tela = 0 if abs(scroll_tela) > largura_fundo else scroll_tela-1
 
     #Mudei essa parte do codigo pros piratas so spawnarem quando o jogo estiver rodando
@@ -205,6 +225,15 @@ while rodando:
 
     if pygame.key.get_pressed()[pygame.K_ESCAPE] and game_state.state == 'main_menu':
         rodando = False
+
+    if game_state.state == 'win':
+        animacao_fim = pygame.time.get_ticks()
+        game_state.state = 'animacao'
+
+    if game_state.state == 'animacao' and pygame.time.get_ticks() - animacao_fim > 5000:
+        game_state.state = 'change_level'
+    elif game_state.state == 'animacao':
+        scroll_tela -= (pygame.time.get_ticks() - animacao_fim) / 200
 
     clock.tick(120)
 
